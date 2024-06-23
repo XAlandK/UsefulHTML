@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Picker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+        }
+        #address {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Location Picker</h1>
+    <div id="map"></div>
+    <div id="address"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([51.505, -0.09], 13);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Create a marker, but don't add it to the map yet
+        const marker = L.marker([0, 0]);
+
+        // Function to handle map click
+        function onMapClick(e) {
+            const { lat, lng } = e.latlng;
+            // Set the marker position and add it to the map
+            marker.setLatLng([lat, lng]).addTo(map);
+            getAddressFromCoordinates(lat, lng);
+        }
+
+        // Add click event listener to the map
+        map.on('click', onMapClick);
+
+        // Function to get address from coordinates using Nominatim API
+        async function getAddressFromCoordinates(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+            try {
+                const response = await axios.get(url);
+                if (response.data && response.data.display_name) {
+                    const address = response.data.display_name;
+                    document.getElementById('address').innerText = `Address: ${address}`;
+                } else {
+                    document.getElementById('address').innerText = 'No address found for this location.';
+                }
+            } catch (error) {
+                console.error('Error fetching address:', error);
+                document.getElementById('address').innerText = 'Error fetching address';
+            }
+        }
+    </script>
+</body>
+</html>
